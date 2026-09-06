@@ -1,0 +1,10 @@
+# DTEK-V build products
+board/*.o
+board/*.elf
+board/*.bin
+board/*.elf.txt
+
+# Temporary inspection artifacts
+_inspect_board/
+_inspect_lab1/
+tmp/
