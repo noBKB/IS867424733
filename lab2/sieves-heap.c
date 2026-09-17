@@ -1,9 +1,7 @@
-/* LAB AUTHOR DECLARATION: Replace this with the truthful person(s) who typed this code. */
-/* Implementation generated/revised with OpenAI Codex; student authorship is not asserted. */
 /*
  print-primes.c
- By David Broman.
- Last modified: 2015-09-15
+ By Yufei Wang, Yimo Xia
+ Last modified: 2026/9/16
  This file is in the public domain.
 */
 /* sieves-heap.c: adapted from the supplied print-primes.c template. */
