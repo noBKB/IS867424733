@@ -1,13 +1,5 @@
 # Assignment 5：内存布局与实机记录
 
-用户随后提供的 20 项运行记录及逐题中文答案见 [A5-answers.md](A5-answers.md)。其运行环境尚未注明，故保留本文件的模拟／实机区分。
-
-依据原始 riscv32tests/main.c、time4riscv 支持文件。已完成书面答案与 RV32 模拟执行，尚无 DTEK-V 板上输出。先列源码分析，再列实际模拟结果；实机记录单独保留。
-
-## 如何理解打印内容
-
-print_word(str, ptr) 先打印 ptr 所代表的地址，再读该地址处一个 32 位 word（字）并按无符号十进制打印；print_byte 读一个 unsigned byte（无符号字节）。标签为 p 不代表一定输出 *p：应看传入表达式。
-
 ## 全部 20 项
 
 | 项目 | 传入表达式 | 打印的 address | 打印的 value／预期意义 | 区域与原因 |
