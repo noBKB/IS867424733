@@ -1,4 +1,5 @@
 /* LAB AUTHOR DECLARATION: Replace this with the truthful person(s) who typed this code. */
+/* Implementation generated/revised with OpenAI Codex; student authorship is not asserted. */
 /*
  pointers.c
  By David Broman.
@@ -16,7 +17,7 @@ int list1[20];
 int list2[20];
 int counter = 0;
 
-void copycodes(const char* src, int* dst, int* count){
+void copycodes(const signed char* src, int* dst, int* count){
   while(*src != '\0'){
     *dst = *src;
     src++;
@@ -26,8 +27,9 @@ void copycodes(const char* src, int* dst, int* count){
 }
 
 void work(void){
-  copycodes(text1, list1, &counter);
-  copycodes(text2, list2, &counter);
+  // signed char matches the signed byte load (lb) in pointers.S.
+  copycodes((const signed char*)text1, list1, &counter);
+  copycodes((const signed char*)text2, list2, &counter);
 }
 
 void printlist(const int* lst){

@@ -20,18 +20,18 @@ The uploaded attachment paths in the referenced task were resolved to the local 
 - `pointers.c`: strings, printing helpers, and main are supplied; `list1`, `list2`, `counter`, `work`, and `copycodes` are missing.
 - `pointers.S`: complete RISC-V reference program. It declares two `.asciz` strings, two 80-byte buffers, and one word counter. `main` calls `work` and then intentionally spins at `stop`.
 
-`riscv32tests.zip` contains exactly `riscv32tests/main.c`. The merged Assignment 5 directory contains this file plus the eight files from the `time4riscv` archive. There were no filename conflicts during the merge, and no supplied support file was overwritten.
+`riscv32tests.zip` contains exactly `riscv32tests/main.c`. The merged Assignment 5 directory contains this file plus seven support files from the `time4riscv` archive (eight files total). There were no filename conflicts during the merge, and no supplied support file was overwritten.
 
 ## Assembly-to-C derivation
 
 The relevant observations from `pointers.S` are:
 
-- `work` loads addresses into `a0`, `a1`, and `a2`, calls `copycodes` twice, and returns without placing a result in `a0`; therefore its C form is `void work(void)`.
-- `copycodes` reads through `a0` with `lb`, writes through `a1` with `sw`, reads and writes a word through `a2` with `lw`/`sw`, and returns without setting `a0`; therefore the C form is a `void` procedure with a byte source pointer, an `int` destination pointer, and an `int` counter pointer.
+- `work` loads addresses into `a0`, `a1`, and `a2` and calls `copycodes` twice. The intended C interface is `void work(void)`: the caller uses its side effects, not a return result. The register a0 still contains a residual pointer at return.
+- `copycodes` reads through `a0` with `lb`, writes through `a1` with `sw`, and updates the integer through `a2` with `lw`/`sw`. Its intended interface is a void procedure taking a signed-byte source pointer, an int destination pointer, and an int counter pointer. It advances a0 to the NUL byte, but no caller consumes that residual pointer as a result.
 - `a0` advances by one byte and `a1` advances by four bytes. The C implementation uses `src++`, `dst++`, `*dst = *src`, and `(*count)++` to express the same operations.
 - `list1[20]` and `list2[20]` reserve 80 bytes each, matching the assembly `.space 80` declarations. These are declarations only; no array-subscript access is used.
 
-The assembly uses `lb`, not `lbu`, so the C assignment keeps the source value as a `char` rather than forcing an unsigned-byte conversion. The supplied strings contain ASCII bytes, so the expected output is unchanged.
+The assembly uses `lb`, not `lbu`. The 2026-09-17 revision uses `const signed char *src` to preserve signed byte loads even when plain char is unsigned. The original text1/text2 declarations are retained and explicitly converted at call sites. The supplied ASCII strings give unchanged output.
 
 ## Implementation decisions
 
@@ -45,3 +45,9 @@ The assembly uses `lb`, not `lbu`, so the C assignment keeps the source value as
 - `lecture3-6.pdf` pages 13 and 22-28 were used for stored-program/code memory, RISC-V registers and calling convention, and stack behavior.
 - `riscv-instruction-sheet_improved(1).pdf` was used to check `lb`, `lw`, `sw`, `la`, `.data`, `.text`, `.space`, and register roles.
 - The duplicate `lecture3-6(1).pdf` contains the same relevant lecture material; no external web source was needed.
+
+## 2026-09-17 revision
+
+The intended interfaces are void procedures because callers use their side effects and no return result is established for use. a0 still contains a residual pointer at return; it is not empty. The C functions do not promise to reproduce unused register contents.
+
+A3 now advances p directly to the next unmarked number, with no next variable or zero sentinel. It still marks from 2*p and visits all remaining primes. size_t avoids signed int overflow in index arithmetic on the verified Windows host and RV32 target. A2 exits after processing n before i++ can overflow. Original template comments and the inherited author header were restored. See the Chinese oral-prep.md for line-by-line explanations.

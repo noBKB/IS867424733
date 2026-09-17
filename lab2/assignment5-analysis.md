@@ -1,72 +1,84 @@
-# Assignment 5 - static memory-layout analysis
+# Assignment 5：内存布局与实机记录
 
-This analysis is based on the raw `riscv32tests/main.c`, `dtekv-script.lds`, `boot.S`, the DTEK-V library, and the lecture material. The official cross compiler and DTEK-V board were not available in this environment, so the numeric addresses and instruction words are intentionally left as board-run fields.
+依据原始 riscv32tests/main.c、time4riscv 支持文件。当前完成的是静态分析；尚无 DTEK-V 板上输出。下表数值是按源码推导的预期值，不是实机记录。
 
-## What the helper functions print
+## 如何理解打印内容
 
-`print_word(str, ptr)` prints the address passed as `ptr`, then reads one 32-bit word at that address and prints that word as an unsigned decimal value. `print_byte(str, ptr)` prints the address and reads one byte as an unsigned value. Thus the label describes the expression passed to the helper; it is not necessarily the value printed as `value=`.
+print_word(str, ptr) 先打印 ptr 所代表的地址，再读该地址处一个 32 位 word（字）并按无符号十进制打印；print_byte 读一个 unsigned byte（无符号字节）。标签为 p 不代表一定输出 *p：应看传入表达式。
 
-## All 20 observations
+## 全部 20 项
 
-| Item | Source expression | Address printed | Value printed / meaning | Static region and explanation |
+| 项目 | 传入表达式 | 打印的 address | 打印的 value／预期意义 | 区域与原因 |
 |---|---|---|---|---|
-| AM1 | `&gv` | address of `gv` | `4` | `.bss` global; it starts zero-initialized and is assigned `4` before the call. |
-| AM2 | `&in` | address of `in` | `3` | `.data` global because it has the initializer `3`. |
-| AM3 | `&fun` | address of the function entry | first 32-bit machine-instruction word at `fun` | `.text`; code is stored as words, so the address points to an instruction. Numeric value depends on the actual link. |
-| AM4 | `&main` | address of the function entry | first 32-bit machine-instruction word at `main` | `.text`; numeric value depends on the actual link and compiler output. |
-| AM5 | `&p` | address of the local pointer variable `p` | the pointer value `p`, which is `&m` | stack; `print_word` reads the word stored in the pointer slot. |
-| AM6 | `&m` | address of local integer `m` | `7` | stack; `m = gv + in` before `*p` is incremented. |
-| AM7 | `&p` | same address of the pointer slot | still `&m` | stack; `*p = *p + 1` changes the pointed-to integer, not the pointer variable. |
-| AM8 | `&m` | same address of `m` | `8` | stack; `p` points to `m`, so dereferencing `p` incremented `m`. |
-| AM9 | `&p` | address of the pointer slot | address of `cs`, because `p = (int*)cp` | stack; the pointer variable remains in its slot while its stored value changes. |
-| AM10 | `&cs[0]` | address of first byte of `cs` | `66` (`'B'`) | stack byte array; first byte of `"Bonjour!"`. |
-| AM11 | `&cs[1]` | address of second byte of `cs` | `111` (`'o'`) | stack byte array. |
-| AM12 | `&cs[2]` | address of third byte of `cs` | `110` (`'n'`) | stack byte array. |
-| AM13 | `&cs[3]` | address of fourth byte of `cs` | `106` (`'j'`) | stack byte array. |
-| AM14 | `&cs[0]` | address of first byte of `cs` | `205` (`0xcd`) | little-endian low byte after `*p = 0x1234abcd`. |
-| AM15 | `&cs[1]` | address of second byte of `cs` | `171` (`0xab`) | next little-endian byte. |
-| AM16 | `&cs[2]` | address of third byte of `cs` | `52` (`0x34`) | next little-endian byte. |
-| AM17 | `&cs[3]` | address of fourth byte of `cs` | `18` (`0x12`) | most significant byte of the stored word. |
-| AF1 | `&param` inside `fun` | address of `fun`'s local parameter copy | `9` | stack; `fun` increments its pass-by-value copy of `m` and prints it. |
-| AM18 | `&m` | address of `m` | `8` | stack; passing `m` to `fun` did not modify the caller's variable. |
-| AM19 | `&gv` | address of `gv` | `9` | `.bss` global; `fun` stores its incremented parameter into `gv`. |
+| AM1 | &gv | gv 的地址 | 4 | .bss；执行时已赋值 4 |
+| AM2 | &in | in 的地址 | 3 | .data；显式初始化 |
+| AM3 | &fun | fun 入口 | 待实机：入口处机器指令字 | .text；RAM 中的代码 |
+| AM4 | &main | main 入口 | 待实机：入口处机器指令字 | .text；RAM 中的代码 |
+| AM5 | &p | 指针变量 p 的地址 | &m（具体数值待填） | 栈；*p 此时为 7 |
+| AM6 | &m | m 的地址 | 7 | 栈；4 + 3 |
+| AM7 | &p | 与 AM5 相同 | 仍为 &m | 栈；改变的是 *p |
+| AM8 | &m | 与 AM6 相同 | 8 | 栈；经 *p 增加了 1 |
+| AM9 | &p | p 的地址 | cs 首字节地址 | 栈；p = (int*)cp |
+| AM10 | &cs[0] | cs 首字节地址 | 66（0x42，B） | 栈数组 |
+| AM11 | &cs[1] | cs 首地址 + 1 | 111（0x6f，o） | 栈数组 |
+| AM12 | &cs[2] | cs 首地址 + 2 | 110（0x6e，n） | 栈数组 |
+| AM13 | &cs[3] | cs 首地址 + 3 | 106（0x6a，j） | 栈数组 |
+| AM14 | &cs[0] | cs 首字节地址 | 205（0xcd） | 存入 0x1234abcd 后的低字节 |
+| AM15 | &cs[1] | cs 首地址 + 1 | 171（0xab） | 小端序 |
+| AM16 | &cs[2] | cs 首地址 + 2 | 52（0x34） | 小端序 |
+| AM17 | &cs[3] | cs 首地址 + 3 | 18（0x12） | 高有效字节在较高地址 |
+| AF1 | &param | fun 内形参副本的地址 | 9 | 栈；按值传递，8 加 1 |
+| AM18 | &m | main 中 m 的地址 | 8 | 未修改调用者的 m |
+| AM19 | &gv | 与 AM1 相同 | 9 | fun 将 param 赋给全局 gv |
 
-The calls occur in source order: AF1 is printed inside `fun(m)`, before AM18 and AM19.
+AF1 在 fun(m) 内执行，早于 AM18、AM19。main 内有 19 次观察，另外 1 次在 fun；总共 20 次。
 
-## Direct answers to the official questions
+## 口试问题逐项回答
 
-### AM18, AM19, and AF1
+1. **为什么 gv 变了，m 没变？** fun(int param) 使用 pass-by-value（按值传递）。m=8 被复制给 param，param++ 变为 9，gv=param 把 9 写进全局量。main 中的 m 仍为 8。
+2. **cp 自身多大？** RV32 的数据指针为 4 字节。char 决定解引用的字节宽度，不决定指针自身大小。
+3. **字符串为什么 9 字节？** Bonjour! 有 8 个字符，另一个字节存 NUL terminator（零结束符）。cp 指向 cs 的首元素，字符串按连续字节存放。
+4. **fun/main 的地址、节、内存种类与内容？** 位于 .text，支持脚本声明 RAM 从 0 起、大小 32M；这些是放在 RAM 地址空间的代码。入口处读到的是机器指令编码。确切地址和指令字取决于实际构建，不从其他版本抄取。
+5. **in/gv 在哪里？** in 有初值 3，归入 .data；gv 无显式初值，归入 .bss。最终节归属可用 ELF 检查；运行中赋值不会让对象换节。
+6. **p/m 为什么地址大？** 它们的地址被传给打印函数，因此本题需要实际可寻址存储，通常位于 main 的栈帧。boot.S 用 _stack_end 初始化 sp，链接脚本预留 0x100000 字节栈，位置在前面的代码/数据之后，栈向低地址增长。不要把这个结论概括为所有局部变量总在栈上：未取地址的局部量可被优化到寄存器。
+7. **AM5 与 AM7？** &p 是指针变量的地址；p 是其中存放的 &m；*p 是 m 的内容。AM5 时 *p=7，AM7 时 *p=8，而两次打印的 p 槽位及槽位中的地址不变。
+8. **字节序？** AM14–17 预期按地址递增出现 cd ab 34 12，最低有效字节在最低地址，因此是 little-endian（小端序）。
 
-`fun(int param)` receives a copy of `m`. It increments `param` from 8 to 9 and stores that value into the global `gv`. The original `m` remains 8, so AM18 is 8 and AM19 is 9. AF1 shows the separate stack parameter copy with value 9.
+## 平台限定
 
-### Size of `cp`
+提供的实验通过 int* 访问 char 数组，涉及 alignment（对齐）和 aliasing（类型别名）规则；函数指针转给 void* 也依赖平台约定。保留原始课程代码，在规定的工具链和板子上观察，不把该代码包装为任意主机上严格可移植的 C 程序。AM3/4 按 RV32IM、无压缩指令的目标解释为一个 32 位指令字。
 
-`cp` points to characters, but the pointer itself is an RV32 address. A pointer occupies 4 bytes on the RISC-V/32 target; its pointed-to type controls how dereferencing and pointer arithmetic work, not the pointer's own size.
+## DTEK-V 上操作
 
-### Why `cs` has 9 bytes
+在 assignment5/ 中执行 make，再执行 dtekv-run main.bin。记录所用工具链、日期，并把终端输出保存到上级目录或 .md 文件中；原 Makefile 的 clean 会删除当前目录 *.txt。
 
-`"Bonjour!"` has eight visible characters: `B o n j o u r !`. A C string also stores a terminating NUL byte, so the array needs `8 + 1 = 9` bytes.
+若工具链提供 nm/objdump，可从 main.elf 辅助确定符号地址和指令；这些应标为 build artifact（构建产物）结果，仍与板上实际显示区分。
 
-### `fun` and `main`
+## 实机填写表
 
-Both are functions in `.text`. Their symbols' addresses point to instruction memory. The value read by `print_word` at either address is a 32-bit encoded RISC-V instruction, not a normal data integer. Exact addresses and words require the actual linker output.
+下面所有“待填”都必须来自真实运行，不是上表静态推导值的再次抄写。
 
-### `in` and `gv`
+| 项目 | 实机 address | 实机 value |
+|---|---|---|
+| AM1 | 待填 | 待填 |
+| AM2 | 待填 | 待填 |
+| AM3 | 待填 | 待填 |
+| AM4 | 待填 | 待填 |
+| AM5 | 待填 | 待填 |
+| AM6 | 待填 | 待填 |
+| AM7 | 待填 | 待填 |
+| AM8 | 待填 | 待填 |
+| AM9 | 待填 | 待填 |
+| AM10 | 待填 | 待填 |
+| AM11 | 待填 | 待填 |
+| AM12 | 待填 | 待填 |
+| AM13 | 待填 | 待填 |
+| AM14 | 待填 | 待填 |
+| AM15 | 待填 | 待填 |
+| AM16 | 待填 | 待填 |
+| AM17 | 待填 | 待填 |
+| AF1 | 待填 | 待填 |
+| AM18 | 待填 | 待填 |
+| AM19 | 待填 | 待填 |
 
-Both are file-scope global variables. `in = 3` belongs in `.data`; `gv` has no initializer and belongs in `.bss`, although its runtime value is 4 at AM1 and 9 at AM19.
-
-### `p` and `m`
-
-They are local variables in `main`, so they are stored in the stack frame. `boot.S` initializes `sp` to `_stack_end`; the linker script places the stack after the lower-addressed code/data regions, so stack addresses are much larger than the addresses of `in` and `gv`. The stack grows downward as frames are used.
-
-### AM5 and AM7
-
-At AM5, `&p` is the address of the pointer slot, `p` is the value stored in that slot (`&m`), and `*p` would be the integer stored at `m`, namely 7. At AM7, `&p` and `p` are unchanged, while `*p` is now 8; the call prints `&p`, not `*p`.
-
-### AM14 through AM17
-
-The word `0x1234abcd` appears in memory as bytes `cd ab 34 12` at increasing addresses. The least significant byte is at the lowest address, so the RISC-V processor is little-endian.
-
-## Linker layout to use when the board is available
-
-The supplied linker script starts `.text` at `0x0`, then places `.data`, `.bss`, `.rodata`, and a `.stack` region. The exact symbols and stack addresses depend on the actual cross-compiled `main.elf`. After the official run, replace the address/value placeholders in the handwritten or uploaded notes with the host-monitor output; do not copy numeric addresses from another build.
+日期：待填。工具链版本：待填。板子／二进制版本：待填。

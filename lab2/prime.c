@@ -1,4 +1,5 @@
 /* LAB AUTHOR DECLARATION: Replace this with the truthful person(s) who typed this code. */
+/* Implementation generated/revised with OpenAI Codex; student authorship is not asserted. */
 /*
  prime.c
  By David Broman.

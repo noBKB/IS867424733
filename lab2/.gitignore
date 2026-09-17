@@ -1,0 +1,10 @@
+*.exe
+*.o
+*.elf
+*.bin
+*.elf.txt
+/prime
+/print-primes
+/sieves
+/sieves-heap
+/pointers

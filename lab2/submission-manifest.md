@@ -1,25 +1,21 @@
-# Submission manifest and Canvas check
+# 文件清单与 Canvas 核对
 
-The supplied Lab 2 PDF says that the Canvas assignment page lists the exact upload files, but that page/list was not included in the local materials. This document deliberately separates prepared work from a claim about Canvas requirements.
+## 已准备的干净候选源文件
 
-## Clean candidate source set prepared here
+lab2-final.zip 仅包含 prime.c、print-primes.c、sieves.c、sieves-heap.c、pointers.c，内容与本目录对应文件一致。没有可执行文件、测试输出或说明文档。
 
-The clean candidate directory contains only these five student C source files:
+这些文件的作者声明仍需据实填写；由 AI 生成的版本不能仅改姓名就声称为学生独立输入。
 
-- `prime.c`
-- `print-primes.c`
-- `sieves.c`
-- `sieves-heap.c`
-- `pointers.c`
+## GitHub 上另外提供的材料
 
-They contain no compiled binaries, object files, temporary dumps, or generated test output. Each has an author-declaration placeholder that must be filled truthfully by the student(s) who typed that assignment.
+- pointers.S：原始 A4 参考。
+- assignment5/：原始 DTEK-V 程序及全部支持文件，包括原始 softfloat.a。这是课程提供的库，不是本次编译产物。
+- README-lab2.md、oral-prep.md、assignment5-analysis.md、requirements.md、source-audit.md、test-report.md、performance.md：说明、口试准备及验证证据。
 
-## Supplied references kept outside the candidate set
+A5 的支持文件已完整保留许可信息。原始 PDF/zip、临时测试程序和生成的二进制仅保存在本地工作材料中。
 
-- `pointers.S` is a supplied assembly reference for Assignment 4; it is kept in the complete work directory and is not claimed to be an upload file.
-- `assignment5/main.c` and the `time4riscv` support files are kept in the complete work directory for the DTEK-V build/run. The PDF allows notes to be uploaded but does not state the exact Canvas filenames.
-- The original PDF, archives, raw extracted files, compiler outputs, RARS temporary copy, dumps, and performance artifacts are verification material only.
+## 仍需核对
 
-## Before uploading
+PDF 第 2 页明确把确切提交文件清单交给 Canvas 页面，本次无法从 PDF 推断该清单。请打开 Lab 2 Files + Upload code 核对。PDF 允许上传 A5 笔记；若带到现场的笔记未上传，则应按 PDF 要求使用手写纸质笔记。
 
-Open the Canvas assignment `Lab 2 Files + Upload code` and compare its exact file list with the candidate directory. If Canvas asks for `pointers.S`, Assignment 5 notes, or another file, add the requested file from the complete work directory after checking the assignment page. Do not upload the verification binaries or the original archive copies.
+A5 尚需板上运行并补数值；A6 现场完成。干净 zip 是已准备文件集合，不声称为已确认的 Canvas 精确清单。

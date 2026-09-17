@@ -1,5 +1,12 @@
 /* LAB AUTHOR DECLARATION: Replace this with the truthful person(s) who typed this code. */
-/* Sieve of Eratosthenes using a local stack array. */
+/* Implementation generated/revised with OpenAI Codex; student authorship is not asserted. */
+/*
+ print-primes.c
+ By David Broman.
+ Last modified: 2015-09-15
+ This file is in the public domain.
+*/
+/* sieves.c: adapted from the supplied print-primes.c template. */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,42 +28,44 @@ void print_sieves(int n){
     if(n < 2)
         return;
 
-    {
-        size_t limit = (size_t)n;
-        char arr[limit + 1U];
-        size_t p;
-        size_t next;
-        size_t i;
+    size_t limit = (size_t)n;
+    size_t p;
+    size_t i;
+    char arr[limit + 1];
 
-        for(i = 2U; i <= limit; i++)
-            arr[i] = 0;
+    // 1. Each index represents a number; 0 means unmarked.
+    for(i = 2; i <= limit; i++)
+        arr[i] = 0;
 
-        p = 2U;
-        while(p != 0U){
-            for(i = p + p; i <= limit; i += p)
-                arr[i] = 1;
+    // 2. Start with the smallest prime.
+    p = 2;
+    while(p <= limit){
+        // 3. Mark 2p, 3p, ...; do not mark p itself.
+        for(i = 2 * p; i <= limit; i += p)
+            arr[i] = 1;
 
-            next = 0U;
-            for(i = p + 1U; i <= limit; i++){
-                if(arr[i] == 0){
-                    next = i;
-                    break;
-                }
-            }
-            p = next;
-        }
+        // 4. Move to the next unmarked number; stop if past n.
+        p++;
+        while(p <= limit && arr[p] != 0)
+            p++;
+    }
 
-        for(i = 2U; i <= limit; i++){
-            if(arr[i] == 0)
-                print_number((int)i);
-        }
+    // 5. Print the unmarked numbers.
+    for(i = 2; i <= limit; i++){
+        if(arr[i] == 0)
+            print_number((int)i);
     }
 }
 
+// 'argc' contains the number of program arguments, and
+// 'argv' is an array of char pointers, where each
+// char pointer points to a null-terminated string.
 int main(int argc, char *argv[]){
     if(argc == 2)
+    {
         print_sieves(atoi(argv[1]));
-    else
-        printf("Please state an integer number.\n");
-    return 0;
+    }
+  else
+    printf("Please state an integer number.\n");
+  return 0;
 }

@@ -1,4 +1,5 @@
 /* LAB AUTHOR DECLARATION: Replace this with the truthful person(s) who typed this code. */
+/* Implementation generated/revised with OpenAI Codex; student authorship is not asserted. */
 /*
  print-primes.c
  By David Broman.
@@ -38,11 +39,18 @@ void print_number(int n){
 }
 
 void print_primes(int n){
+    // Should print out all prime numbers less than 'n'
+    // with the following formatting. Note that
+    // the number of columns is stated in the define
+    // COLUMNS
+    // The 2026 PDF overrides "less than": include n when it is prime.
     int i;
 
     for(i = 2; i <= n; i++){
         if(is_prime(i))
             print_number(i);
+        if(i == n)  // Stop before i++ could overflow at INT_MAX.
+            break;
     }
 }
 

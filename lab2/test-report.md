@@ -1,94 +1,60 @@
-# Lab 2 verification report
+# Lab 2 验证记录
 
-Verification date: 2026-09-16.
+验证日期：2026-09-17。针对本次简化源码。此前报告保存在本地旧工作目录，旧压缩包哈希和旧耗时不代表当前版本。
 
-## Local C build
+## 编译
 
-Environment: Windows, LLVM-MinGW `gcc` reporting Clang 22.1.8. Each prepared source was compiled separately with the requested strict command shape:
+Windows / AMD Ryzen 7 9800X3D；gcc --version 实际显示 LLVM-MinGW Clang 22.1.8。
 
-```text
-gcc -std=c11 -Wall -Wextra -pedantic <source>.c -o <output>
-```
-
-Results:
-
-| Source | Result |
-|---|---|
-| `prime.c` | exit 0, no diagnostics |
-| `print-primes.c` | exit 0, no diagnostics |
-| `sieves.c` | exit 0, no diagnostics |
-| `sieves-heap.c` | exit 0, no diagnostics |
-| `pointers.c` | exit 0, no diagnostics |
-
-The binaries were written only under the re-verification build directory, not into the clean final archive.
-
-## Assignment 1
-
-The supplied starter main printed:
+每个源文件分别执行：
 
 ```text
-1
-1
-0
+gcc -std=c11 -Wall -Wextra -pedantic prime.c -o <build>/prime.exe
+gcc -std=c11 -Wall -Wextra -pedantic print-primes.c -o <build>/print-primes.exe
+gcc -std=c11 -Wall -Wextra -pedantic sieves.c -o <build>/sieves.exe
+gcc -std=c11 -Wall -Wextra -pedantic sieves-heap.c -o <build>/sieves-heap.exe
+gcc -std=c11 -Wall -Wextra -pedantic pointers.c -o <build>/pointers.exe
 ```
 
-An additional harness tested `0, 1, 2, 3, 4, 9, 25, 97, 98, 383, 987, 2147483647`; every result matched the expected prime/non-prime value and the harness exited 0. The `i <= n / i` condition also avoids `i * i` overflow in this test.
+五次编译均 exit 0、无诊断。生成文件位于本地 lab2-work/revision-20260917/build，不放进候选 zip 或 GitHub。
 
-## Assignments 2 and 3
+## 行为测试
 
-`print-primes 105`, `sieves 105`, and `sieves-heap 105` each exited 0 and produced byte-for-byte equal output. The output contains 27 primes and 4 newlines; the final partial row contains `97`, `101`, and `103` with the required `%10d ` formatting.
+- A1 原始 main 输出 1、1、0。额外 C 断言检查 -1、0、1、2、3、4、9、25、97、INT_MAX；在本机 32 位 int 下全部通过。
+- A2/两种 A3：输入 -3、0..200、1000、10000，共 204 组。每个程序的输出分别与独立 Python 试除法生成的预期输出一致，核对整数、字段宽度、空格和换行（仅统一 Windows CRLF 与 LF）。
+- n=105 的结果包含 27 个质数、4 个换行，尾行 97、101、103，符合 PDF 的六列规则。
+- 多次调用 print_primes(3) 后 counter 分别为 2、4、0；随后调用 print_primes(1)，counter 仍为 0。确认调用之间状态延续。
+- A2 新加 i==n 时退出的条件。INT_MAX 的完整打印没有执行；终止前不再执行 i++ 的安全性由代码检查确认，不声称跑过二十多亿个候选数。
+- A4 对完整两段 ASCII 输出、Count=35、Endian experiment: 0x23,0x00,0x00,0x00 做了逐字节核对。
+- A4 额外使用含 65、-128、-1、0 的 signed char 源串，验证整数写入、原 count 从 10 变 13、NUL 不被复制；再用 -funsigned-char 编译此测试，仍通过。
+- heap 源码另用 -fsanitize=address -g 编译，n=10000 运行成功，无 AddressSanitizer 报告。free 的匹配路径经代码检查；不把单次 ASan 运行表述为所有路径均无泄漏的证明。
 
-The same three programs were compared for `n = 0, 1, 2, 3, 4, 10, 105, 1000`. Every comparison was equal and every process exited 0. Inputs below 2 produce no prime output.
+## 约束检查
 
-The stack sieve source has a local `char arr[limit + 1U]`; the heap version allocates the same one-byte marker storage and calls `free(arr)` on the normal path. A source audit confirmed that the stack implementation follows the PDF's `2p, 3p, ...` marking step rather than starting at `p*p`. AddressSanitizer compiled and ran the heap version for `n=1000` with exit 0 and no report.
+筛法标记从 2*p 开始，再找最小未标记后继，未改为 p*p 或平方根终止。局部数组 char arr[limit+1] 为 n+1 字节；n<2 时先退出。heap 版 malloc 分配同样大小，失败时返回，成功路径最后 free。
 
-### Performance samples
+A4 方括号只出现在两个数组声明，没有数组下标访问。源串使用 const signed char*，明确匹配 lb 的符号扩展；int* 对应 RV32 的 lw/sw 和 4 字节步长。
 
-These are one-run, local samples from the strict build without `-O`; stdout was redirected to the PowerShell null sink. They are not DTEK-V measurements and are not exact largest-number claims.
+保留老师模板署名与说明；A2 原注释“less than n”后注明 2026 PDF 要求包含 n。所有 C 源码都有作者占位符和 AI 协助说明，没有填学生姓名。
 
-| Program | n | Time (s) | Exit |
-|---|---:|---:|---:|
-| `print-primes` | 1,000,000 | 0.17 | 0 |
-| `print-primes` | 5,000,000 | 1.55 | 0 |
-| `print-primes` | 6,000,000 | 2.00 | 0 |
-| `print-primes` | 10,000,000 | 4.09 | 0 |
-| `print-primes` | 15,000,000 | 7.26 | 0 |
-| `print-primes` | 18,000,000 | 9.39 | 0 |
-| `print-primes` | 20,000,000 | 10.90 | 0 |
-| `sieves` | 1,000,000 | 0.02 | 0 |
-| `sieves` | 1,500,000 | 0.01 | `-1073741571` (Windows stack overflow) |
-| `sieves` | 5,000,000 | 0.01 | `-1073741571` (Windows stack overflow) |
-| `sieves-heap` | 1,000,000 | 0.01 | 0 |
-| `sieves-heap` | 5,000,000 | 0.06 | 0 |
-| `sieves-heap` | 10,000,000 | 0.09 | 0 |
-| `sieves-heap` | 50,000,000 | 0.42 | 0 |
-| `sieves-heap` | 100,000,000 | 0.93 | 0 |
+## 性能
 
-On this Windows executable, trial division is around 5-6 million at two seconds and around 18-20 million at ten seconds. The stack version reaches the local default stack limit near 1.0-1.5 million because the assignment requires its marker array to be on the stack. The heap version passed 100 million in under one second; no artificial maximum search was performed. The comparison illustrates why the answer depends on compiler, stack limit, CPU, and output path.
+详细命令、31 个实测样本和两种时间预算结果在 performance.md。本次记录用当前源码重新测试；成功、栈溢出、预算超时明确区分。
 
-## Assignment 4
+## A5 与 A6
 
-The C program exited 0 and contained both required substrings:
+A5 的 main.c 和七个 time4riscv 支持文件已放到 assignment5/，复制时保持原始内容。源码、Makefile、链接脚本及 20 项观察点已分析，数值表按源码推导；所有实际地址和指令字仍待实机填写。
 
-```text
-Count = 35
-Endian experiment: 0x23,0x00,0x00,0x00
-```
+本次 PATH 中未找到 riscv32-unknown-elf-gcc 或 dtekv-run；没有连接板子，不声称已构建或运行 A5。RARS 在旧版审计中仅验证过临时修改退出循环的副本，本次没有重新运行 RARS，也没有修改原始 pointers.S。
 
-The source bracket audit found `[` and `]` only in the required declarations `int list1[20];` and `int list2[20];`; there is no array-subscript access expression.
+A6 只准备知识和练习，没有提前实现未知随机题。
 
-RARS 1.6 was run against a temporary copy of `pointers.S` whose intentional stop loop was replaced by exit syscall 10. It exited 0, emitted only the expected warning that RARS ignores `.type`, and its `.data` dump contained `00000023` for the shared counter. The dump also showed the four-byte integer values for both copied strings at successive word boundaries. The original `pointers.S` was not modified.
+## 交付核对
 
-## Assignment 5
+assignment5/ 的八个文件及 pointers.S 与原始材料逐字节一致。重新生成的 lab2-final.zip 通过完整性检查，恰好包含五个 C 文件；解压内容与本目录源文件逐字节一致。
 
-The raw `main.c` was merged with the eight supplied `time4riscv` support files without filename conflicts. The current host does not provide the official `make`, `riscv32-unknown-elf-gcc`, `riscv32-unknown-elf-ld`, `riscv32-unknown-elf-objcopy`, or `dtekv-run` commands. A `mingw32-make` attempt also exposed the Unix-only `rm/find` assumptions in the supplied Makefile. An LLVM-MinGW Clang target attempt failed because this installation has no RISC-V backend.
+ZIP SHA-256：0336679B9E53D305687EA77DFBF685125A455D3683528621E9FF470E140CF1D3。
 
-Therefore no `main.elf`, `main.bin`, board output, runtime addresses, or host-monitor values are claimed. The complete static AM1-AM19/AF1 analysis is in `assignment5-analysis.md`; the official build and board run remain required on a KTH lab machine or a correctly configured DTEK-V environment.
+## 本地验证文件
 
-## Assignment 6
-
-No surprise assignment was implemented in advance. Oral preparation contains tracing strategies and likely variations only.
-
-## Final packaging check
-
-The clean candidate directory was compiled again after copying the final source files. All five strict compilations exited 0 with no diagnostics. `lab2-final.zip` was reopened with a ZIP integrity check: `testzip=None`, five entries, and no forbidden binary/temp extensions. Its SHA-256 is `ED1EAF946B109CF3246AA4025CC85CAC1A6917CC4530A409C38E8A0E4DBC3BD8` and its size is 3052 bytes. The previous archive was copied to `previous-root-artifacts/lab2-final.previous-20260916.zip` before replacement.
+本地 lab2-work/revision-20260917/ 中保留 verify.py、prime-test.c、pointer-test.c、counter-test.c、performance.json 和 build/。测试脚本里的绝对源路径指向本机 GitHub 仓库 lab2/；换机器运行须相应调整。这些不是 Canvas 候选提交内容。

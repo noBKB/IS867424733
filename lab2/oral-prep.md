@@ -1,148 +1,146 @@
-# IS1200/IS1500 Lab 2 oral preparation
+# Lab 2 中文口试准备
 
-This note is a study guide, not a substitute for understanding or for the student's truthful author declaration. The official questions are kept in the same order as the 2026 Lab 2 PDF.
+依据 2026 Lab PDF，配合本目录源代码学习。先练习每题的“30 秒答案”，再自己跟踪一遍循环。代码中的作者占位符必须按实际情况填写：本版本由 AI 生成及修订，不应声明为学生独立输入。PDF 要求两位伙伴各输入前四题中的两题，或各自独立完成所有题；双方都须能解释全部内容。
 
-## Assignment 1 - Basic Control-Flow
+## Assignment 1 — Basic Control-Flow（基本控制流）
 
-### 30-second answer
+### 30 秒答案
 
-`is_prime(int n)` returns `0` for values below 2. Otherwise it tests possible divisors `i` from 2 while `i <= n / i`; if `n % i == 0`, the number is composite and the function returns 0. If no divisor is found, it returns 1. The implementation uses only a loop and `if` statements.
+质数是大于 1、只有 1 和自身两个正因数的整数。函数先排除小于 2 的数，再从 2 开始试除。如果余数为 0 就返回 0，否则检查完后返回 1。只需检查到平方根，因为一对因数不可能同时大于平方根。
 
-### If the teacher asks more
+### 老师追问
 
-A prime number（质数）greater than 1 has exactly two positive divisors: 1 and itself. If a composite number is written as `n = a * b`, at least one of `a` or `b` is at most `sqrt(n)`, so checking past the square root cannot discover a first divisor that was missed. The `%` operator gives the remainder; a remainder of zero means exact divisibility. `i <= n / i` expresses `i * i <= n` without multiplying and risking overflow.
+- `n % i` 是 remainder（余数）；等于 0 表示 i 整除 n。
+- `i <= n / i` 在正整数范围等价于 `i * i <= n`，但不需要相乘，避免 integer overflow（整数溢出）。
+- `return` 立刻结束函数；返回 0 表示不是质数，返回 1 表示是质数。
+- 以 25 为例：依次试 2、3、4、5，遇到 5 就返回 0。以 2 为例：循环一次也不进入，直接返回 1。
+- 不能将条件写成严格小于，否则会漏掉 25 这样的完全平方数。
 
-### Common traps
+## Assignment 2 — Functions and Side Effects（函数与副作用）
 
-- 1 is not prime. 2 and 3 are prime; 4, 9, and 25 are not.
-- The upper bound in the loop is safe for the positive `int` test domain; do not replace it with an unchecked `i * i <= n`.
-- The assignment forbids arrays and recursion in `is_prime`.
+### 30 秒答案
 
-## Assignment 2 - Functions and Side Effects
+`print_primes` 从 2 检查到 n，发现质数就调用 `print_number`。后者用 `printf("%10d ", n)` 打印，更新 global variable（全局变量）counter；满 COLUMNS 个数就换行并清零。返回类型 void 表示没有返回值，但打印和改变 counter 都是 side effect（副作用），因此函数仍然有用。
 
-### 30-second answer
+### 老师追问
 
-`void` means that `print_number` returns no value. It still performs useful work by printing an integer and changing the file-scope global variable `counter`. After each `printf("%10d ", n)`, it increments `counter`; when the value reaches `COLUMNS` (6), it prints a newline and resets the counter. `print_primes` tests every candidate from 2 through `n`, inclusive, using `is_prime` and sends prime candidates to `print_number`.
+- parameter（形参）是定义中的 n；argument（实参）是调用时传入的值。
+- `%10d` 是最小宽度为 10 的有符号十进制整数，右对齐；后面的空格隔开列。
+- counter 放在函数外，所以调用之间保留状态。若每次进入函数都定义并清零，就无法记住列数。
+- 全局变量容易被其他代码修改，函数行为依赖调用历史，因此一般设计不优先使用它；本题明确要求使用。
+- 多次调用 print_primes 会接着上一次未满的行打印，这是全局计数器的语义。最后不足六个数时，代码不强加换行。
+- 循环末尾 `if(i == n) break;`：已经处理了 n 就退出，防止 n 为 INT_MAX（int 最大值）时，下一次 i++ 溢出。
+- 模板注释说“less than n”，而 2026 PDF 明确说包含 n。代码保留模板注释并说明以 PDF 为准。
+- n=105 共 27 个质数：四行各六个，最后一行 97、101、103。
 
-### Official question: What does a function that returns no value mean?
+## Assignment 3 — Arrays / Sieve（数组与筛法）
 
-The return type is written `void`. The caller does not receive a return value, but the procedure can still have observable effects, such as printing, changing an object through a pointer, or changing the required global `counter` state.
+### 30 秒答案
 
-### Official question: How is the side effect implemented?
+我用 char 数组保存“这个数是否被标记”。先把 2 到 n 都设为未标记，p 从 2 开始；标记 2p、3p 等倍数，再从 p 后面找下一个未标记数。找不到时停止，最后输出所有未标记数。stack（栈）版在函数内声明数组；heap（堆）版用 malloc 分配并用 free 释放。
 
-The side effect（副作用）is the update of `counter`, which is outside the parameter list and persists across calls. A global variable（全局变量） is used because `print_number` receives only `n` and therefore cannot otherwise remember the current column. This is convenient for this teaching exercise but poor general design because unrelated code can change the state, call order matters, and reuse or concurrency becomes harder to reason about.
+### 对照代码的五个步骤
 
-### Formatting details
+1. `arr[i] = 0`：索引 i 就代表整数 i；0 表示未标记，1 表示合数。
+2. `p = 2`：开始处理第一个质数。
+3. `for(i = 2 * p; i <= limit; i += p)`：标记 2p、3p、4p……，不标记 p 本身。
+4. 先 p++，再跳过已标记数；p 超过 limit 就表示不存在下一个数。
+5. 扫描 2 到 n，打印 arr[i] 为 0 的 i。
 
-`%10d` is a minimum field width of ten characters and right-aligns an integer. The literal space after `d` separates columns. The newline is printed after every sixth number; the helper does not need to infer a newline from `n` itself.
+这里严格遵循 PDF，没有改成从 p*p 开始，也没有在平方根处提前停止。
 
-## Assignment 3 - Arrays and Sieve of Eratosthenes
+### 用 n=10 手算
 
-### 30-second answer
+- p=2：标记 4、6、8、10。
+- 下一个未标记数是 3：标记 6、9。
+- 跳过 4，p=5：标记 10。
+- 跳过 6，p=7：没有不超过 10 的倍数。
+- 跳过 8、9、10 后退出。最终输出 2、3、5、7。
 
-The marker array represents the consecutive integers 2 through `n`. First all markers are clear and `p` is 2. The code marks `2p, 3p, 4p, ...` through `n`, finds the smallest unmarked value strictly greater than `p`, and repeats. When there is no such value, the remaining unmarked entries are prime and are printed with the Assignment 2 helper. `sieves.c` declares the one-byte `char arr` locally on the stack; `sieves-heap.c` allocates the same marker storage with `malloc` and releases it with `free`.
+### 老师追问
 
-### Official question: What are the main algorithm steps?
+- array（数组）是连续存放同类型元素的空间。这里存的是标志，不是整数清单本身。
+- `char arr[limit + 1]` 占 n+1 bytes（字节），满足 n+8 限制。0 和 1 两个位置不用，换来“索引就是数”的直观关系。
+- `n < 2` 提前返回，因此不会声明零长度或负长度的 variable-length array（变长数组）。
+- `size_t` 是表示大小和索引的无符号整数类型。当前 Windows 64 位及 RV32 平台上，它能容纳 int 上界附近的 2*p；使用 int 做这一步可能溢出。
+- `limit = (size_t)n` 在排除负数之后转换；输出时 i 不超过 n，所以可以转回 int 给 print_number。
+- `p <= limit && arr[p] != 0` 使用 short-circuit evaluation（短路求值）：只有 p 没越界才读取 arr[p]。不能交换条件的顺序。
+- stack 数组退出函数时自动释放；malloc 返回的堆空间需要 free。malloc 失败返回 NULL，本版本打印错误并退出函数。
+- sizeof(char) 按 C 定义就是 1，所以 malloc(limit+1) 已经分配所需字节。
+- 两个文件的筛法、打印代码相同；差别是数组的分配、失败处理和释放。
+- 大输入可能耗尽栈。stack overflow（栈溢出）是可用栈容量限制，不能把那次失败算成成功筛出了质数。
 
-1. Represent the integers 2 through `n` in the marker array.
-2. Set `p = 2`.
-3. Mark the multiples `2p, 3p, 4p, ...`; do not mark `p` itself.
-4. Find the smallest unmarked number greater than `p`. Stop if none exists; otherwise make it the new `p`.
-5. Print every remaining unmarked number.
+### 性能题怎么回答
 
-The source follows this textbook order. It does not start at `p*p`, call `is_prime`, use a bitset, or introduce a different optimization.
+试除法对每个候选数重新找因数；筛法通过标记倍数复用结果，通常更快。两种筛法计算步骤相同，但分配方式和可用容量不同。
 
-### Stack, heap, and the memory limit
+本次实测数据、最后打印的质数和复现方法见 performance.md。区分输入上界 n 和“最后打印的质数”；后者可能小于 n。计时包含格式化与输出，输出到空设备和显示到终端会有不同结果。只能说“在这台机器、这些编译选项、这种输出方式下的实测范围”，不能说是所有电脑的固定上限。
 
-An array（数组） declared inside `print_sieves` has automatic stack（栈） storage and occupies one byte per marker because `char` is enough for the flag. `char arr[limit + 1U]` uses `n+1` bytes for the indexed representation, within the required `n+8` bytes. Heap（堆） storage from `malloc` remains allocated until `free`; the heap version checks for `NULL` and frees the successful allocation before returning.
+## Assignment 4 — Pointers（指针）
 
-### Official performance question
+### 30 秒答案
 
-There is no machine-independent largest value. Trial division in `print-primes` repeats divisor tests, so it grows much more slowly than a sieve. The two sieve versions do similar marking work; stack and heap overhead and the machine's stack limit can differ. In the current strict Windows build, stdout was redirected to a null sink: trial division was 1.55 seconds at 5,000,000 and 9.39 seconds at 18,000,000; heap sieve was 0.93 seconds at 100,000,000. The stack sieve succeeded at 1,000,000 but overflowed the current default Windows stack at 1,500,000. These are local samples, not DTEK-V answers and not exact maxima.
+work 没有参数，调用 copycodes 两次。copycodes 接收三个 pointer（指针）：源字节地址、目标整数地址、计数器地址。循环通过 dereference（解引用）读一个字节，写一个整数；移动两个指针，并把计数器指向的整数加一。遇到 NUL（零字节结束符）停止。
 
-### Common traps
+### 如何从汇编看出接口
 
-- Do not use `int arr[...]`: it is normally four bytes per element and violates the intended memory calculation.
-- Do not forget that a VLA with an invalid or negative bound is dangerous; the code returns before declaring the array for `n < 2`.
-- Do not say that a stack overflow at a large local input proves the sieve algorithm is wrong. It reflects the required storage region and the host stack limit.
+- a0、a1、a2 是前三个参数寄存器。
+- `lb t0,0(a0)` 是带符号的单字节加载，所以使用 `const signed char *src`。
+- `sw t0,0(a1)` 写 4 字节，且 a1 每次加 4，所以目标是 `int *dst`（目标平台 int 为 4 字节）。
+- 通过 a2 做 lw/sw 更新一个整数，所以第三个参数是 `int *count`。
+- 汇编没有建立一个供调用者使用的返回结果，调用者只使用副作用，所以用 void。a0 返回时仍残留源串末尾地址，不能简单说“a0 是空的”。
+- 普通 char 不保证带符号；signed char 明确匹配 lb 对高位字节的符号扩展。text1/text2 保留模板类型，因此 work 传入时显式转换为 signed char 指针。const 表示不通过该指针修改源字符串。
 
-## Assignment 4 - Pointers
+### 地址与步长
 
-### 30-second answer
+`text1` 的值是首字符地址，`list1` 在传参时转换为首元素地址，`&counter` 取得计数器地址。注意 `&text1` 是指针变量本身的地址，不是字符串首字符地址。
 
-Reading the assembly gives `void work(void)` and `void copycodes(const char *src, int *dst, int *count)`. `work` passes the addresses of `text1`, `list1`, and `counter`, then repeats with `text2` and `list2`. `copycodes` reads a byte through `src`, stores it as an integer through `dst`, advances `src` by one byte and `dst` by one integer, and increments the integer through `count` until the NUL byte. The C source uses pointer dereference and pointer arithmetic, with no array-subscript access.
+`src++` 前进一个字节，`dst++` 前进 sizeof(int) 个字节，在 RV32 上是 4。C 的 pointer arithmetic（指针运算）自动按元素大小移动，汇编则明确写 addi 1 和 addi 4。
 
-### How the signatures are derived
+`(*count)++` 增加 count 指向的整数，count 自身地址不变；`count++` 则会移动指针。这两者不能混用。
 
-- `a0`, `a1`, and `a2` receive the first three arguments according to the RISC-V calling convention（调用约定）.
-- `lb t0,0(a0)` reads one byte, so `a0` is a character/byte pointer.
-- `sw t0,0(a1)` stores a 32-bit word and `a1` increases by 4, so `a1` is an `int *` destination for the 20-word lists.
-- `lw`/`sw` through `a2` read and write the shared counter, so `a2` is an `int *`.
-- Neither function places a result in `a0` before `jr ra`, so both return `void`.
+`*dst = *src` 先读源对象再写目标对象，对应 lb 和 sw。global int list1[20] 分配 80 字节，与 .space 80 对应；方括号只用于声明，没有 a[i] 访问。
 
-The file-scope declarations `int list1[20]`, `int list2[20]`, and `int counter` correspond to `.space 80`, `.space 80`, and `.word 0`. The brackets are declarations required to reserve the storage; no expression such as `list1[i]` appears in the source.
+### 结束符和共享计数器
 
-### Pointer increment versus pointed-to value
+copycodes 不复制 NUL，也不清零 count，与汇编一致。两个全局整数数组初始为零，字符串后的未写元素仍是 0，printlist 以此停止。两段文本分别长 17、18，累计得到 35。
 
-`src++` changes the pointer address by `sizeof(char)`, normally 1 byte. `dst++` changes it by `sizeof(int)`, normally 4 bytes. `(*count)++` leaves the pointer `count` at the same address and increments the integer stored there. `*dst = *src` is dereferencing: it reads the source object and writes the destination object. These correspond to `lb`, `sw`, `lw`, and `sw` in the assembly.
+### Endianness（字节序）
 
-### Endianness
+35 的十六进制是 0x00000023。从最低地址读到 23 00 00 00，说明本机是 little-endian（小端序）：低有效字节存低地址。big-endian（大端序）按相反顺序放，读起来更接近通常书写的十六进制顺序。两者没有普遍的优劣，交换数据时要约定字节序。
 
-After 35 is stored in `counter`, the bytes printed by `endian_proof` are `0x23,0x00,0x00,0x00`. The least significant byte is at the lowest address, so this machine is little-endian（小端序）. Little-endian is convenient for interpreting low-order bytes and is common in modern systems; big-endian can make the byte order look like the written hexadecimal order. Neither is universally better; code should follow the target's convention.
+## Assignment 5 — Memory Layout（内存布局）
 
-### Common traps
+### 30 秒答案
 
-- `&counter` is the address of the integer; `*count` is the integer at that address.
-- `p++` and `(*p)++` are different operations.
-- `lb` is a signed byte load, while `lbu` would be an unsigned byte load. The supplied strings are ASCII, so their values are positive and the expected output is unchanged.
-- RARS may print the PDF-specified warning that it ignores `.type`; this is expected.
+print_word 打印传入地址及该处的 32 位内容；print_byte 读一个字节。函数在 .text，初始化全局量 in 在 .data，零初始化的 gv 在 .bss；取了地址的局部量 m 和 p 位于栈帧。fun 收到 m 的值的副本，因此修改 param 不改变 m；它又把 param 赋给全局 gv，所以最终 m=8、gv=9。
 
-## Assignment 5 - Memory Layout
+### 老师追问
 
-### 30-second answer
+- AM18 是 8，AM19 是 9；在 fun 内，AF1 打印 param=9。发生顺序是 AF1 → AM18 → AM19。
+- cp 指向 char，但 RV32 指针自身是 4 字节；指向类型影响读取宽度和 p++ 的步长。
+- “Bonjour!” 有 8 个可见字符，加 NUL 共 9 字节。
+- fun/main 在 .text，地址处的字是 RISC-V 机器指令。支持文件声明地址从 0 起的 RAM 区域；.text 是 section（节）的名字，不能把它直接称为 ROM。具体函数地址和指令编码须从本次构建、板上输出确定。
+- in 是带初值 3 的全局量；gv 没有显式初值，由启动代码清零。
+- 启动代码将 sp 设为 _stack_end，链接脚本预留栈大小 0x100000，因此 m/p 的栈地址高于前面的全局数据。栈向低地址增长。
+- AM5：&p 是存放指针的地址，p=&m，*p=7。AM7：前两项不变，*p=8。
+- AM14–17 为 cd ab 34 12，是 0x1234abcd 的小端存储顺序。
+- 本题的 char 数组转 int 指针写入是指定平台上的教学实验，有对齐与 C 类型别名方面的限制，不应推广为任意平台可移植写法。
 
-`print_word` prints the address passed to it and then reads one 32-bit word at that address. `print_byte` reads one byte as an unsigned value. `gv` is an uninitialized global in `.bss`, `in` is an initialized global in `.data`, and `fun`/`main` are functions in `.text`. `m`, `p`, `cs`, `cp`, and `fun`'s `param` are locals in stack frames. `fun(m)` receives a copy: it changes the copy from 8 to 9 and writes 9 to `gv`, so `m` remains 8 while `gv` becomes 9. `cs[9]` has eight visible characters plus the NUL terminator, and `0x1234abcd` appears as `cd ab 34 12` on little-endian RV32.
+全部 20 项及实机填写表见 assignment5-analysis.md。实际地址留待 DTEK-V 运行，不能用本机 64 位程序地址代替。A5 源码和支持文件已放在 assignment5/。
 
-### Official question: Why does `gv` change but `m` does not?
+## Assignment 6 — Surprise Assignment（现场随机题）
 
-`fun(int param)` uses pass-by-value（值传递）. `param` is a separate copy of `m`; after `param++`, AF1 prints 9. The assignment `gv = param` changes the global, but there is no assignment back to `m`. Therefore AM18 is 8 and AM19 is 9.
+### 30 秒准备
 
-### Official question: What is the size of `cp`?
+先说清改了什么要求，标出受影响的变量和循环条件；手算一个小例子，再改最少的代码，编译并验证边界。随机题尚未发放，以下仅是练习。
 
-`cp` is a character pointer, but pointer size is determined by the address width, not the pointed-to type. On the RISC-V/32 target, `cp` itself occupies 4 bytes.
+### 练习及检查点
 
-### Official question: Why does the string need 9 bytes?
+1. 只打印大于 10 的质数。应在选择打印时增加条件，不改变 is_prime 的定义。
+2. 解释 p++、(*p)++、*p++。分别移动指针、增加指向值、取旧指针所指值再移动指针。
+3. 把函数内局部整数加一，为什么调用者不变？按值传递；若需要修改调用者对象，则通过地址访问。
+4. 预测 0x01020304 在小端机器的四个字节。低地址开始为 04 03 02 01。
+5. 把六列改成四列。改 COLUMNS；检查每第四次调用换行，以及未满一行的状态。
 
-`"Bonjour!"` contains eight visible characters. A C string（C 字符串） ends with a NUL byte, so the array requires 8 plus 1, namely 9 bytes.
-
-### Official question: Where are `fun` and `main`?
-
-They are in the `.text` section. Their addresses point to instruction memory. A word read at those addresses is a 32-bit encoded RISC-V instruction. The exact addresses and instruction words depend on the actual cross-compiled binary and must be copied from the DTEK-V run, not guessed from another build.
-
-### Additional address questions
-
-- `in` and `gv` are global variables; `in` is `.data` and `gv` is `.bss`.
-- `m` and `p` are local variables in `main` and therefore live in its stack frame. The stack is placed at higher addresses by `_stack_end` and grows downward, so their addresses are much larger than the global data addresses.
-- At AM5, `&p` is the address of the pointer slot, `p` is `&m`, and `*p` is 7. At AM7, `&p` and `p` are unchanged, while `*p` is 8.
-- At AM14-AM17, the four bytes after storing `0x1234abcd` are `cd`, `ab`, `34`, `12`, which proves little-endian order.
-
-The full AM1-AM19/AF1 table, including each expression and expected region, is in `assignment5-analysis.md`. Its numeric address fields remain intentionally unfilled until the official build and board run.
-
-### Common traps
-
-- AM5 and AM7 print `&p`, not `p` and not `*p`; `print_word` then interprets the word stored at `&p`.
-- `cp` points to `cs`, but `p` is explicitly cast to `int *` before the word store. This is the exercise's deliberate type/alignment experiment.
-- Do not call `.bss` “the initialized data section”: `gv` starts zero-initialized because it has no explicit initializer, even though its runtime value changes later.
-- `print_byte` displays the byte value as decimal; use hexadecimal in parentheses when explaining endianness.
-
-## Assignment 6 - Surprise Assignment
-
-This task is performed during the lab session and is not pre-implemented. A good method is:
-
-1. Restate the changed requirement in one sentence.
-2. Identify each variable's type, storage region, and ownership.
-3. Trace the first and last loop iterations before editing.
-4. Make the smallest change that implements the new rule.
-5. Compile with warnings, run a boundary case, and explain one iteration to the teacher.
-
-Likely variations include a changed loop bound, a small prime/sieve change, pointer versus pointed-to-value updates, a changed parameter or global side effect, or a changed load/store width.
+口试练习顺序：先不看笔记讲 30 秒，再手算一次循环，然后回答“这个条件删掉会怎样”。若讲不清，就回到对应的三四行代码逐句解释。

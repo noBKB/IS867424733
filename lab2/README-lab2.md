@@ -1,58 +1,69 @@
-# KTH IS1200/IS1500 Lab 2 - C Programming
+# KTH IS1200/IS1500 2026 Lab 2
 
-This package was rechecked on 2026-09-16 from the supplied 2026 Lab 2 PDF and the raw starter archives. The existing earlier generated files were not used as proof.
+2026-09-17 修订。以用户上传的 2026 Lab PDF 和原始模板为依据；代码采用课堂范围内的直接实现。根目录的原始 Lab 2 模板与本目录的已实现版本是不同文件，请进入本目录操作。
 
-## Prepared C files (Assignments 1-4)
+## 文件入口
 
-From the directory containing the source files, use GCC with the strict warning flags required for this verification:
+- 五个 C 源文件：A1 prime.c；A2 print-primes.c；A3 sieves.c、sieves-heap.c；A4 pointers.c。
+- pointers.S：原样保留的 A4 汇编参考。
+- assignment5/：原始 main.c、Makefile、启动文件、链接脚本、库和许可说明。
+- oral-prep.md：中文口试准备，含 30 秒答案、逐步讲解和练习。
+- assignment5-analysis.md：20 个观察点及实机填写表。
+- test-report.md、performance.md：当前版本验证和计时方法。
+- lab2-final.zip：仅五个 C 源文件。Canvas 的确切提交清单须在课程页面核对，见 submission-manifest.md。
 
-```text
+## A1–A4 编译运行
+
+要求有支持 C11 变长数组的 GCC 或 Clang。这里的 gcc 命令在本次 Windows 环境实际是 LLVM-MinGW 的 Clang 驱动；不冒称为 GNU GCC。MSVC 不支持本题使用的 C 变长数组。
+
+在 Windows PowerShell 中，进入仓库的 lab2 目录后运行：
+
+```powershell
+gcc -std=c11 -Wall -Wextra -pedantic prime.c -o prime.exe
+gcc -std=c11 -Wall -Wextra -pedantic print-primes.c -o print-primes.exe
+gcc -std=c11 -Wall -Wextra -pedantic sieves.c -o sieves.exe
+gcc -std=c11 -Wall -Wextra -pedantic sieves-heap.c -o sieves-heap.exe
+gcc -std=c11 -Wall -Wextra -pedantic pointers.c -o pointers.exe
+.\prime.exe
+.\print-primes.exe 105
+.\sieves.exe 105
+.\sieves-heap.exe 105
+.\pointers.exe
+```
+
+在 WSL 或 KTH Linux 实验机中，进入同一源码目录：
+
+```sh
 gcc -std=c11 -Wall -Wextra -pedantic prime.c -o prime
-./prime
-
 gcc -std=c11 -Wall -Wextra -pedantic print-primes.c -o print-primes
-./print-primes 105
-
 gcc -std=c11 -Wall -Wextra -pedantic sieves.c -o sieves
-./sieves 105
-
 gcc -std=c11 -Wall -Wextra -pedantic sieves-heap.c -o sieves-heap
-./sieves-heap 105
-
 gcc -std=c11 -Wall -Wextra -pedantic pointers.c -o pointers
+./prime
+./print-primes 105
+./sieves 105
+./sieves-heap 105
 ./pointers
 ```
 
-The verified `105` outputs from `print-primes`, `sieves`, and `sieves-heap` are byte-for-byte equal. `pointers` must include `Count = 35` and `Endian experiment: 0x23,0x00,0x00,0x00`.
+prime 应打印 1、1、0。三个质数列表应一致；pointers 应得到 Count = 35 和 Endian experiment: 0x23,0x00,0x00,0x00（在本次小端机器上）。
 
-The stack sieve uses a variable-length local `char` array as required. Very large inputs can exceed the host's default stack size; that is a host limitation of the required stack allocation. The heap version is the suitable comparison for large local inputs.
+stack sieve 为教学要求使用局部数组；大输入受栈容量限制。不要把栈溢出的失败运行记为成功计时。源文件保留模板的 atoi 参数解析，请输入 int 范围内的十进制整数。
 
-Every prepared C source has a `LAB AUTHOR DECLARATION` placeholder. Replace it only with the truthful person(s) who actually typed that assignment. Do not insert an inferred name and do not remove the supplied David Broman comments.
+## A5 官方流程
 
-## Assignment 4 and RARS
+在配置好 DTEK-V 交叉工具链并连接板子的 KTH 环境执行：
 
-The supplied `pointers.S` intentionally jumps to `stop` after calling `work`, so a direct RARS simulation does not terminate. RARS 1.6 may report the expected warning that it ignores `.type`. The re-verification used a temporary copy with only the stop loop changed to exit syscall 10; the original `pointers.S` remains unchanged.
-
-## Assignment 5 - DTEK-V
-
-The prepared `assignment5/` directory contains the raw `riscv32tests/main.c` merged with the eight files from `time4riscv`. The supplied Makefile flow is:
-
-```text
+```sh
 cd assignment5
 make
 dtekv-run main.bin
 ```
 
-Run this on the KTH lab machine or a correctly configured DTEK-V toolchain. The current Windows environment has no official `make`, `riscv32-unknown-elf-*` toolchain, or `dtekv-run`, and no board connection. Consequently this package does not claim a `main.elf`, `main.bin`, runtime address, or host-monitor value. Use `assignment5-analysis.md` to prepare the explanations, then fill the actual addresses and values from the board output.
+Makefile 使用 Unix find/rm；仅有 Windows 原生 make 不等于满足环境要求。WSL 中仍需另行具备课程工具链和板子访问条件。本次未连接 DTEK-V，也未成功构建 A5，因此真实地址、指令字和板上输出仍须填写。按 assignment5-analysis.md 的实机记录表逐项抄录。Makefile 的 clean 会删除该目录 *.txt，个人笔记请用 .md 或放到上级目录。
 
-## Assignment 6
+## 作者声明与提交
 
-Assignment 6 is the in-session surprise assignment. It is deliberately not implemented in advance; `oral-prep.md` contains only tracing and problem-solving preparation.
+每个 C 文件开头保留 LAB AUTHOR DECLARATION 占位符。本版本代码由 AI 生成及修订，请按实际情况披露协助，不得声称为自己独立输入。课程要求两位伙伴各完成前四题中的两题输入工作，或各自独立写全部题；双方均应能解释全部实现。模板中的老师署名表示原始模板作者。
 
-## Submission note
-
-The supplied PDF says that the Canvas page lists the exact upload files, but that Canvas list was not included in the supplied materials. The clean archive therefore contains the prepared source set and notes without claiming that this is the exact Canvas list. Check the Canvas assignment before uploading. See `submission-manifest.md` for the distinction between prepared files, supplied references, and verification-only material.
-
-## Evidence
-
-Read `requirements.md` for the PDF requirements matrix, `source-audit.md` for raw archive hashes and assembly derivation, `test-report.md` for commands and observed results, and `assignment5-analysis.md` for the complete static AM1-AM19/AF1 table.
+Canvas 提交清单不在 PDF 内，提交前核对 Lab 2 Files + Upload code。GitHub 上传不等同 Canvas 提交。A6 为现场随机题，当前只提供知识准备。
