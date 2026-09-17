@@ -1,4 +1,4 @@
-# Assignment 5：内存布局与实机记录
+# Assignment 5
 
 ## 全部 20 项
 
