@@ -1,5 +1,11 @@
 # Lab 2 验证记录
 
+## A5 后续模拟验证
+
+使用 C:/Program Files/LLVM/bin 下支持 RISC-V 的 Clang 22.1.8，编译原始 A5 main.c 和 dtekv-lib.c；独立启动及链接文件用于 Unicorn 2.1.4 的 RV32IM 模拟。已再次执行并确认全部 20 项输出、程序返回、AF1/AM18/AM19、AM14–17，以及 AM3/4 指令字。ELF 符号核对确认 fun/main 在 .text、in 在 .data、gv 在 .bss。完整结果和所有问题的书面解答见 assignment5-analysis.md。
+
+模拟采用 -O0、-fno-strict-aliasing，原始 C 源码保持不变；该配置编译时有 6 个警告，已在模拟说明中记录。此次不使用官方 Makefile，不声称已构建官方 DTEK-V 二进制或完成实机运行。下文先前“没有运行 A5”的状态仅指当时及官方实机流程。
+
 验证日期：2026-09-17。针对本次简化源码。此前报告保存在本地旧工作目录，旧压缩包哈希和旧耗时不代表当前版本。
 
 ## 编译

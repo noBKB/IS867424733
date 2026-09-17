@@ -8,7 +8,7 @@
 - pointers.S：原样保留的 A4 汇编参考。
 - assignment5/：原始 main.c、Makefile、启动文件、链接脚本、库和许可说明。
 - oral-prep.md：中文口试准备，含 30 秒答案、逐步讲解和练习。
-- assignment5-analysis.md：20 个观察点及实机填写表。
+- assignment5-analysis.md：A5 全部书面答案、20 项实际 RV32 模拟输出、模拟地址逐项解读及独立的实机填写表。模拟已运行，DTEK-V 实机部分仍待完成。
 - test-report.md、performance.md：当前版本验证和计时方法。
 - lab2-final.zip：仅五个 C 源文件。Canvas 的确切提交清单须在课程页面核对，见 submission-manifest.md。
 

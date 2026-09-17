@@ -127,7 +127,7 @@ print_word 打印传入地址及该处的 32 位内容；print_byte 读一个字
 - AM14–17 为 cd ab 34 12，是 0x1234abcd 的小端存储顺序。
 - 本题的 char 数组转 int 指针写入是指定平台上的教学实验，有对齐与 C 类型别名方面的限制，不应推广为任意平台可移植写法。
 
-全部 20 项及实机填写表见 assignment5-analysis.md。实际地址留待 DTEK-V 运行，不能用本机 64 位程序地址代替。A5 源码和支持文件已放在 assignment5/。
+全部 20 项、RV32 模拟实测结果及实机填写表见 assignment5-analysis.md。可以用其中的 &p=0x001009FC、p=&m=0x00100A00 练习解释，但这些只属于模拟构建，不能填成板上地址。A5 源码和支持文件已放在 assignment5/。
 
 ## Assignment 6 — Surprise Assignment（现场随机题）
 
