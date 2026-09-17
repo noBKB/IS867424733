@@ -8,8 +8,6 @@
 
 Här sammanfattas några tidigare tester från den 16 september 2026 med avrundade tider. Inga nya tester har gjorts och inga exakta maxgränser har sökts.
 
-Testmiljö: Windows, AMD Ryzen 7 9800X3D och LLVM-MinGW Clang 22.1.8, utan optimeringsflaggor. Ett skript mätte tiden. Utskriften skickades till en nullenhet för att undvika skärmvisningens tidsåtgång.
-
 ### 中文
 
 把输入的数字调大，看看三个程序分别要跑多久。这里从 2026-09-16 已有的本机测试中挑了几个结果，时间用约数表示，方便比较。没有重新测试，也没有去找刚好卡在 2 秒或 10 秒的最大值。
