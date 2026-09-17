@@ -25,7 +25,7 @@ void copycodes(const signed char* src, int* dst, int* count){
 }
 
 void work(void){
-  // signed char matches the signed byte load (lb) in pointers.S.
+  // signed char 对应 pointers.S 中带符号的字节加载指令 lb。
   copycodes((const signed char*)text1, list1, &counter);
   copycodes((const signed char*)text2, list2, &counter);
 }

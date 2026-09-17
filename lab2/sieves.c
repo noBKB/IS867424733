@@ -4,7 +4,7 @@
  Last modified: 2026/9/16
  This file is in the public domain.
 */
-/* sieves.c: adapted from the supplied print-primes.c template. */
+/* sieves.c: 由提供的 print-primes.c 模板改写。 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,33 +31,33 @@ void print_sieves(int n){
     size_t i;
     char arr[limit + 1];
 
-    // 1. Each index represents a number; 0 means unmarked.
+    // 1. 数组下标代表对应的整数；0 表示未标记。
     for(i = 2; i <= limit; i++)
         arr[i] = 0;
 
-    // 2. Start with the smallest prime.
+    // 2. 从最小的质数 2 开始。
     p = 2;
     while(p <= limit){
-        // 3. Mark 2p, 3p, ...; do not mark p itself.
+        // 3. 标记 2p、3p 等倍数，不标记 p 本身。
         for(i = 2 * p; i <= limit; i += p)
             arr[i] = 1;
 
-        // 4. Move to the next unmarked number; stop if past n.
+        // 4. 寻找下一个未标记的数；超过 n 时停止。
         p++;
         while(p <= limit && arr[p] != 0)
             p++;
     }
 
-    // 5. Print the unmarked numbers.
+    // 5. 输出所有未标记的数。
     for(i = 2; i <= limit; i++){
         if(arr[i] == 0)
             print_number((int)i);
     }
 }
 
-// 'argc' contains the number of program arguments, and
-// 'argv' is an array of char pointers, where each
-// char pointer points to a null-terminated string.
+// argc 保存程序参数的个数；
+// argv 是字符指针数组，其中每个指针
+// 指向一个以零字符结尾的字符串。
 int main(int argc, char *argv[]){
     if(argc == 2)
     {

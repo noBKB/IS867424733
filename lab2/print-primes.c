@@ -37,24 +37,24 @@ void print_number(int n){
 }
 
 void print_primes(int n){
-    // Should print out all prime numbers less than 'n'
-    // with the following formatting. Note that
-    // the number of columns is stated in the define
-    // COLUMNS
-    // The 2026 PDF overrides "less than": include n when it is prime.
+    // 模板原说明：输出所有小于 n 的质数，
+    // 使用以下格式。注意：
+    // 每行的列数由宏定义
+    // COLUMNS 指定。
+    // 2026 年 PDF 要求包含上界 n；若 n 是质数，也要输出。
     int i;
 
     for(i = 2; i <= n; i++){
         if(is_prime(i))
             print_number(i);
-        if(i == n)  // Stop before i++ could overflow at INT_MAX.
+        if(i == n)  // 处理完 n 就退出，避免 n 为 INT_MAX 时 i++ 溢出。
             break;
     }
 }
 
-// 'argc' contains the number of program arguments, and
-// 'argv' is an array of char pointers, where each
-// char pointer points to a null-terminated string.
+// argc 保存程序参数的个数；
+// argv 是字符指针数组，其中每个指针
+// 指向一个以零字符结尾的字符串。
 int main(int argc, char *argv[]){
     if(argc == 2)
     {
