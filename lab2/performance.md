@@ -1,6 +1,6 @@
 # Assignment 3：简单性能比较
 
-Enkel prestandajämförelse
+
 
 ## 怎么测
 
